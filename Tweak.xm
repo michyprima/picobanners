@@ -69,7 +69,6 @@
 
 %end
 
-static int aniDelay = 0;
 %hook NCNotificationContentView
 %property (nonatomic, assign) BOOL isFromBanner;
 
@@ -115,12 +114,14 @@ static int aniDelay = 0;
 		if (label) {
 			@try {
 				
+				PB *pb = [PB sharedInstance];
+				
 				NSString* secondaryText = [self primarySubtitleText];
 				
 				if(!secondaryText || secondaryText.length == 0)
 				secondaryText = [self secondaryText];
 				
-				secondaryText = [[PB sharedInstance]fixSecondaryString:secondaryText];
+				secondaryText = [pb fixSecondaryString:secondaryText];
 				
 				NSMutableParagraphStyle *style =  [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
 				style.alignment = NSTextAlignmentLeft;
@@ -158,7 +159,7 @@ static int aniDelay = 0;
 				
 				if ([label isKindOfClass:[MarqueeLabel class]]) {
 					MarqueeLabel *view3 = (MarqueeLabel*)label;
-					aniDelay = view3.animationDuration + view3.animationDelay + 1;
+					pb.savedAnimationDuration = view3.animationDuration + view3.animationDelay + 1;
 				}
 			} @catch (NSException *exception) {
 			#ifdef DEBUG
@@ -243,6 +244,6 @@ static int aniDelay = 0;
 
 %hook SBNotificationBannerDestination
 -(id)_startTimerWithDelay:(unsigned long long)arg1 eventHandler:(/*^block*/id)arg2 {
-	return %orig(MAX(arg1, aniDelay),arg2);
+	return %orig(MAX(arg1, [PB sharedInstance].savedAnimationDuration),arg2);
 }
 %end
