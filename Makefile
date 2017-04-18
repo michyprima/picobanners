@@ -3,7 +3,7 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = PicoBanners
 PicoBanners_FILES = Tweak.xm MarqueeLabel.m PB.m
 PicoBanners_FRAMEWORKS = UIKit CoreGraphics QuartzCore
-#ADDITIONAL_OBJCFLAGS = -fobjc-arc
+ADDITIONAL_OBJCFLAGS = -Iinclude
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
