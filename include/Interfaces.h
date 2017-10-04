@@ -8,6 +8,7 @@
 -(UILabel*)_primaryLabel;
 -(NSString *)secondaryText;
 -(NSString *)primaryText;
+-(NSString *)hintText;
 -(void)setPrimaryText:(NSString *)arg1 ;
 -(id)_secondaryLabel;
 -(void)setPrimarySubtitleText:(NSString *)arg1 ;

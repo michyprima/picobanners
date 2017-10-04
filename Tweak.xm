@@ -116,7 +116,7 @@
 				
 				PB *pb = [PB sharedInstance];
 				
-				NSString* secondaryText = [self primarySubtitleText];
+				NSString* secondaryText = [self hintText];
 				
 				if(!secondaryText || secondaryText.length == 0)
 				secondaryText = [self secondaryText];
