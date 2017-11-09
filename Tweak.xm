@@ -2,6 +2,8 @@
 #import "Interfaces.h"
 #import "PB.h"
 
+%group main
+
 %hook NCLookHeaderContentView
 
 %property (nonatomic, assign) BOOL isFromBanner;
@@ -31,6 +33,13 @@
 		arg1.origin.x = -8;
 	}
 	%orig;
+}
+
+-(BOOL)adjustsFontForContentSizeCategory {
+    if(self.isFromBanner)
+        return NO;
+
+    return %orig;
 }
 
 %end
@@ -247,3 +256,23 @@
 	return %orig(MAX(arg1, [PB sharedInstance].savedAnimationDuration),arg2);
 }
 %end
+
+%end
+
+
+%group ios101
+%hook MarqueeLabel
+
+- (double)_firstLineBaselineOffsetFromBoundsTop {
+	return 14;
+}
+
+%end
+%end
+
+%ctor {
+    %init(main);
+    
+    if (kCFCoreFoundationVersionNumber < 1348.22)
+        %init(ios101);
+}
