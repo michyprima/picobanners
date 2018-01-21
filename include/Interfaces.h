@@ -1,27 +1,19 @@
-@interface NCLookHeaderContentView : UIView
-@property (nonatomic, assign) BOOL isFromBanner;
--(UIButton *)iconButton;
-@end
-
 @interface NCNotificationContentView : UIView
 @property (nonatomic, assign) BOOL isFromBanner;
 -(UILabel*)_primaryLabel;
 -(NSString *)secondaryText;
 -(NSString *)primaryText;
--(NSString *)hintText;
 -(void)setPrimaryText:(NSString *)arg1 ;
--(id)_secondaryLabel;
--(void)setPrimarySubtitleText:(NSString *)arg1 ;
--(NSString *)primarySubtitleText;
--(UIEdgeInsets)_contentInsetsForShortLook;
 @end
 
-@interface NCShortLookView : UIView
--(NCLookHeaderContentView*)_headerContentView;
--(UIView *)customContentView;
--(BOOL)isBanner;
+@interface MTPlatterHeaderContentView
+@property (nonatomic, assign) BOOL isFromBanner;
 @end
 
-@interface NCNotificationShortLookView : NCShortLookView
+@interface NCNotificationShortLookView : UIView
 -(NCNotificationContentView*)_notificationContentView;
+-(MTPlatterHeaderContentView*)_headerContentView;
+-(BOOL)isBanner;
+@property (nonatomic, assign) BOOL isFromBanner;
+@property (nonatomic, assign) BOOL isFromBannerWasSet;
 @end

@@ -2,84 +2,18 @@
 #import "Interfaces.h"
 #import "PB.h"
 
-%group main
-
-%hook NCLookHeaderContentView
+%hook NCNotificationContentView
 
 %property (nonatomic, assign) BOOL isFromBanner;
-
--(double)_headerHeight {
-	if(self.isFromBanner)
-		return 0;
-	else
-		return %orig;
-}
-
--(void)setTitle:(NSString *)arg1 {
-	if(self.isFromBanner)
-		%orig(@"");
-	else
-		%orig;
-}
-
--(void)_configureDateLabelIfNecessary {
-	if(!self.isFromBanner)
-		%orig;
-}
 
 -(void)setFrame:(CGRect)arg1 {
 	if(self.isFromBanner) {
 		arg1.origin.y = -8;
-		arg1.origin.x = -8;
+		arg1.origin.x = 10;
 	}
+	
 	%orig;
 }
-
--(BOOL)adjustsFontForContentSizeCategory {
-    if(self.isFromBanner)
-        return NO;
-
-    return %orig;
-}
-
-%end
-
-%hook NCShortLookView
-
--(void)setBanner:(BOOL)arg1 {
-	%orig;
-	NCLookHeaderContentView* i = [self _headerContentView];
-	if(i)
-		i.isFromBanner = arg1;
-}
-
--(double)cornerRadius {
-	if([self isBanner]) {
-		return %orig/2;
-	}
-	return %orig;
-}
-
--(void)_configureHeaderOverlayViewIfNecessary {
-	if(![self isBanner])
-		%orig;
-}
-
--(void)_configureShadowViewIfNecessary {
-	if(![self isBanner])
-		%orig;
-}
-
-
--(void)_configureMainOverlayViewIfNecessary {
-	if(![self isBanner])
-		%orig;
-}
-
-%end
-
-%hook NCNotificationContentView
-%property (nonatomic, assign) BOOL isFromBanner;
 
 -(id)_newPrimaryLabel {
 	UILabel *o = %orig;
@@ -92,24 +26,6 @@
 	return o;
 }
 
--(CGSize)sizeThatFits:(CGSize)arg1 {
-	CGSize s = %orig;
-	
-	if(self.isFromBanner) {
-		s.height = 20;
-	}
-	
-	return s;
-}
-
--(void)setFrame:(CGRect)arg1 {
-	if(self.isFromBanner) {
-		arg1.origin.y = -8;
-		arg1.origin.x = 8;
-	}
-	
-	%orig;
-}
 
 -(void)setPrimaryText:(NSString *)arg1 {
 	if(self.isFromBanner) {
@@ -125,10 +41,10 @@
 				
 				PB *pb = [PB sharedInstance];
 				
-				NSString* secondaryText = [self hintText];
+				/*NSString* secondaryText = [self hintText];
 				
-				if(!secondaryText || secondaryText.length == 0)
-				secondaryText = [self secondaryText];
+				if(!secondaryText || secondaryText.length == 0)*/
+				NSString* secondaryText = [self secondaryText];
 				
 				secondaryText = [pb fixSecondaryString:secondaryText];
 				
@@ -195,7 +111,7 @@
 	}
 }
 
--(id)_newSecondaryLabel {
+-(id)_newSecondaryTextView {
 	UILabel *l = %orig;
 	
 	if(self.isFromBanner && l) {
@@ -214,16 +130,71 @@
 	
 	return l;
 }
+
 %end
 
 %hook NCNotificationShortLookView
 
--(void)setBanner:(BOOL)arg1 {
-	%orig;
-	NCNotificationContentView* i = [self _notificationContentView];
-	if(i) {
-		i.isFromBanner = arg1;
+%property (nonatomic, assign) BOOL isFromBanner;
+%property (nonatomic, assign) BOOL isFromBannerWasSet;
+
+%new -(BOOL) isBanner {
+	if(!self.isFromBannerWasSet) {
+		self.isFromBanner = [[NSThread callStackSymbols][9] rangeOfString:@"UserNotificationsUIKit"].location == NSNotFound;
+		self.isFromBannerWasSet = YES;
 	}
+	return self.isFromBanner;
+}
+
+-(CGSize)sizeThatFitsContentWithSize:(CGSize)arg1 {
+    CGSize s = %orig;
+    
+    if([self isBanner]) {
+        s.height = 20;
+    }
+    
+    return s;
+}
+
+-(void)_configureHeaderContentView {
+	%orig;
+	
+	MTPlatterHeaderContentView* view = [self _headerContentView];
+	
+	if(view)
+		view.isFromBanner = [self isBanner];
+}
+
+-(void)_configureHeaderOverlayViewIfNecessary {
+	
+}
+
+-(void)_configureMainOverlayView {
+	
+}
+
+-(void)_configureShadowViewIfNecessary {
+	
+}
+
+-(id)_newNotificationContentView {
+	NCNotificationContentView *view = %orig;
+	
+	if(view)
+		view.isFromBanner = [self isBanner];
+	
+	return view;
+}
+
+-(double)cornerRadius {
+	if([self isBanner])
+		return %orig/2;
+	
+	return %orig;
+}
+
+-(BOOL)adjustsFontForContentSizeCategory {
+    return [self isBanner] ? NO : %orig;
 }
 
 -(void)setThumbnail:(UIImage *)arg1 {
@@ -233,11 +204,63 @@
 		%orig;
 }
 
--(BOOL)_shouldShowGrabber {
-	if([self isBanner])
-		return NO;
-		
-	return %orig;
+%end
+
+%hook MTPlatterHeaderContentView
+
+%property (nonatomic, assign) BOOL isFromBanner;
+
+-(double)_headerHeightForWidth:(double)arg1 {
+    return self.isFromBanner ? 20 : %orig;;
+}
+
+-(double)contentBaseline {
+	return self.isFromBanner ? 0 : %orig;
+}
+
+-(void)setFrame:(CGRect)arg1 {
+	if(self.isFromBanner) {
+		arg1.origin.x = -10;
+	}
+	
+	%orig;
+}
+
+-(id)_dateLabel {
+	UILabel *l = %orig;
+	
+	if(self.isFromBanner && l) {
+		l.hidden = YES;
+	}
+	
+	return l;
+}
+
+-(id)_lazyTitleLabel {
+		UILabel *l = %orig;
+	
+	if(self.isFromBanner && l) {
+		l.hidden = YES;
+	}
+	
+	return l;
+}
+
+-(id)_lazyOutgoingTitleLabel {
+			UILabel *l = %orig;
+	
+	if(self.isFromBanner && l) {
+		l.hidden = YES;
+	}
+	
+	return l;
+}
+
+-(BOOL)adjustsFontForContentSizeCategory {
+    if(self.isFromBanner)
+        return NO;
+
+    return %orig;
 }
 
 %end
@@ -252,27 +275,7 @@
 %end
 
 %hook SBNotificationBannerDestination
--(id)_startTimerWithDelay:(unsigned long long)arg1 eventHandler:(/*^block*/id)arg2 {
+-(id)_startTimerWithDelay:(unsigned long long)arg1 eventHandler:(id)arg2 {
 	return %orig(MAX(arg1, [PB sharedInstance].savedAnimationDuration),arg2);
 }
 %end
-
-%end
-
-
-%group ios101
-%hook MarqueeLabel
-
-- (double)_firstLineBaselineOffsetFromBoundsTop {
-	return 14;
-}
-
-%end
-%end
-
-%ctor {
-    %init(main);
-    
-    if (kCFCoreFoundationVersionNumber < 1348.22)
-        %init(ios101);
-}

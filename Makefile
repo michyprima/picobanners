@@ -1,5 +1,6 @@
 include $(THEOS)/makefiles/common.mk
 
+ARCHS = arm64
 TWEAK_NAME = PicoBanners
 PicoBanners_FILES = Tweak.xm MarqueeLabel.m PB.m
 PicoBanners_FRAMEWORKS = UIKit CoreGraphics QuartzCore
