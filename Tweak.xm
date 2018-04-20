@@ -2,8 +2,24 @@
 #import "Interfaces.h"
 #import "PB.h"
 
-%hook NCNotificationContentView
+%hook NCNotificationShortLookViewController
+%property (nonatomic, assign) BOOL isFromBanner
+- (void)_loadLookView {
+	if ([self valueForKey:@"_delegate"] && [[self valueForKey:@"_delegate"] isKindOfClass:NSClassFromString(@"SBNotificationBannerDestination")]) {
+		self.isFromBanner = YES;
+	} else {
+		self.isFromBanner = NO;
+	}
+	%orig;
+	NCNotificationShortLookView *shortLookView = (NCNotificationShortLookView *)MSHookIvar<UIView *>(self, "_lookView");
+	if (shortLookView) {
+		shortLookView.isFromBanner = self.isFromBanner;
+		shortLookView.isFromBannerWasSet = YES;
+	}
+}
+%end
 
+%hook NCNotificationContentView
 %property (nonatomic, assign) BOOL isFromBanner;
 
 -(void)setFrame:(CGRect)arg1 {
@@ -139,10 +155,6 @@
 %property (nonatomic, assign) BOOL isFromBannerWasSet;
 
 %new -(BOOL) isBanner {
-	if(!self.isFromBannerWasSet) {
-		self.isFromBanner = [[NSThread callStackSymbols][9] rangeOfString:@"UserNotificationsUIKit"].location == NSNotFound;
-		self.isFromBannerWasSet = YES;
-	}
 	return self.isFromBanner;
 }
 
