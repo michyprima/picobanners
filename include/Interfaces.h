@@ -1,3 +1,7 @@
+@interface NCNotificationShortLookViewController : UIViewController
+@property (nonatomic, assign) BOOL isFromBanner;
+@end
+
 @interface NCNotificationContentView : UIView
 @property (nonatomic, assign) BOOL isFromBanner;
 -(UILabel*)_primaryLabel;
