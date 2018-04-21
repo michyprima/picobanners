@@ -3,18 +3,21 @@
 #import "PB.h"
 
 %hook NCNotificationShortLookViewController
-%property (nonatomic, assign) BOOL isFromBanner
+//Credits @Andywiik
 - (void)_loadLookView {
+	BOOL isFromBanner = NO;
+
 	if ([self valueForKey:@"_delegate"] && [[self valueForKey:@"_delegate"] isKindOfClass:NSClassFromString(@"SBNotificationBannerDestination")]) {
-		self.isFromBanner = YES;
-	} else {
-		self.isFromBanner = NO;
+		isFromBanner = YES;
 	}
+
 	%orig;
-	NCNotificationShortLookView *shortLookView = (NCNotificationShortLookView *)MSHookIvar<UIView *>(self, "_lookView");
-	if (shortLookView) {
-		shortLookView.isFromBanner = self.isFromBanner;
-		shortLookView.isFromBannerWasSet = YES;
+
+	if (isFromBanner) {
+		NCNotificationShortLookView *shortLookView = (NCNotificationShortLookView *)MSHookIvar<UIView *>(self, "_lookView");
+		if (shortLookView) {
+			shortLookView.isFromBanner = isFromBanner;
+		}
 	}
 }
 %end
@@ -56,18 +59,13 @@
 			@try {
 				
 				PB *pb = [PB sharedInstance];
-				
-				/*NSString* secondaryText = [self hintText];
-				
-				if(!secondaryText || secondaryText.length == 0)*/
+
 				NSString* secondaryText = [self secondaryText];
 				
 				secondaryText = [pb fixSecondaryString:secondaryText];
 				
 				NSMutableParagraphStyle *style =  [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
 				style.alignment = NSTextAlignmentLeft;
-				//style.firstLineHeadIndent = 10.0f;
-				//style.headIndent = 10.0f;
 				
 				NSMutableAttributedString *attrText;
 				if(arg1 && arg1.length > 0 && secondaryText && secondaryText.length > 0) {
@@ -152,16 +150,11 @@
 %hook NCNotificationShortLookView
 
 %property (nonatomic, assign) BOOL isFromBanner;
-%property (nonatomic, assign) BOOL isFromBannerWasSet;
-
-%new -(BOOL) isBanner {
-	return self.isFromBanner;
-}
 
 -(CGSize)sizeThatFitsContentWithSize:(CGSize)arg1 {
     CGSize s = %orig;
     
-    if([self isBanner]) {
+    if(self.isFromBanner) {
         s.height = 20;
     }
     
@@ -174,7 +167,7 @@
 	MTPlatterHeaderContentView* view = [self _headerContentView];
 	
 	if(view)
-		view.isFromBanner = [self isBanner];
+		view.isFromBanner = self.isFromBanner;
 }
 
 -(void)_configureHeaderOverlayViewIfNecessary {
@@ -193,24 +186,24 @@
 	NCNotificationContentView *view = %orig;
 	
 	if(view)
-		view.isFromBanner = [self isBanner];
+		view.isFromBanner = self.isFromBanner;
 	
 	return view;
 }
 
 -(double)cornerRadius {
-	if([self isBanner])
+	if(self.isFromBanner)
 		return %orig/2;
 	
 	return %orig;
 }
 
 -(BOOL)adjustsFontForContentSizeCategory {
-    return [self isBanner] ? NO : %orig;
+    return self.isFromBanner ? NO : %orig;
 }
 
 -(void)setThumbnail:(UIImage *)arg1 {
-	if([self isBanner])
+	if(self.isFromBanner)
 		%orig(nil);
 	else
 		%orig;
